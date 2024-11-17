@@ -1,0 +1,30 @@
+modules:
+  jira:issuePanel:
+    - key: new-app-hello-world-panel
+      resource: wrapper-app
+      resolver:
+        function: resolver
+      viewportSize: medium
+      title: new-app
+      icon: https://developer.atlassian.com/platform/forge/images/issue-panel-icon.svg
+  function:
+    - key: resolver
+      handler: index.handler
+resources:
+  - key: wrapper-app
+    path: static/wrapper-app/build
+
+permissions:
+  scopes:
+    - read:jira-work
+    - write:jira-work
+    - manage:jira-project
+  external:
+    fetch:
+      backend:
+        - https://api.groq.com
+
+app:
+  runtime:
+    name: nodejs20.x
+  id: ari:cloud:ecosystem::app/630b3e30-e6d9-490e-bc55-25ec92737c5f
