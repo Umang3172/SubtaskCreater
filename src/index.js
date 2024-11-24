@@ -6,24 +6,33 @@ import extractSubtasks, {
 } from "./utils/extractSubtasks";
 const crypto = require('crypto');
 
-const secretKey = Buffer.from('12345678901234567890123456789012', 'utf8'); // 32 bytes
+const secretKey = '12345678901234567890123456789012' // 32 bytes
 const staticIv = Buffer.from('1234567890123456', 'utf8');
 
 const resolver = new Resolver();
 
-const encrypt = (text) => {
-  const cipher = crypto.createCipheriv('aes-256-cbc', secretKey, staticIv);
-  const encrypted = Buffer.concat([cipher.update(text, 'utf8'), cipher.final()]);
-  return encrypted.toString('hex');
+function encrypt (text) {
+  const keyLength = secretKey.length;
+  let encrypted = '';
+
+  for (let i = 0; i < text.length; i++) {
+    encrypted += String.fromCharCode(text.charCodeAt(i) ^ secretKey.charCodeAt(i % keyLength));
+  }
+
+  return btoa(encrypted);
 };
 
-const decrypt = (encryptedData) => {
-  const decipher = crypto.createDecipheriv('aes-256-cbc', secretKey, staticIv);
-  const decrypted = Buffer.concat([
-    decipher.update(Buffer.from(encryptedData, 'hex')),
-    decipher.final()
-  ]);
-  return decrypted.toString('utf8');
+function decrypt (encryptedData) {
+ const keyLength = secretKey.length;
+  const decoded = atob(encryptedData); 
+  let decrypted = '';
+
+  for (let i = 0; i < decoded.length; i++) {
+
+    decrypted += String.fromCharCode(decoded.charCodeAt(i) ^ secretKey.charCodeAt(i % keyLength));
+  }
+
+  return decrypted;
 };
 
 
@@ -130,7 +139,6 @@ resolver.define("getSubTasksByOpenAi", async (req) => {
       body: JSON.stringify(body)
     });
 
-    response = decrypt(response)
    
     return response;
 
