@@ -4,7 +4,29 @@ import { REQUESTED_HEADERS } from "./constants/constants";
 import extractSubtasks, {
   extractingSubtasksFromOpenAiResponse,
 } from "./utils/extractSubtasks";
+const crypto = require('crypto');
+
+const secretKey = Buffer.from('12345678901234567890123456789012', 'utf8'); // 32 bytes
+const staticIv = Buffer.from('1234567890123456', 'utf8');
+
 const resolver = new Resolver();
+
+const encrypt = (text) => {
+  const cipher = crypto.createCipheriv('aes-256-cbc', secretKey, staticIv);
+  const encrypted = Buffer.concat([cipher.update(text, 'utf8'), cipher.final()]);
+  return encrypted.toString('hex');
+};
+
+const decrypt = (encryptedData) => {
+  const decipher = crypto.createDecipheriv('aes-256-cbc', secretKey, staticIv);
+  const decrypted = Buffer.concat([
+    decipher.update(Buffer.from(encryptedData, 'hex')),
+    decipher.final()
+  ]);
+  return decrypted.toString('utf8');
+};
+
+
 
 resolver.define("fetchLabels", async (req) => {
   const key = req.context.extension.issue.key;
@@ -83,17 +105,36 @@ resolver.define("getSubTasksByOpenAi", async (req) => {
   const userPrompt = `Give an array of objects in this format "[{summary:\"sub-task-title\",description:\"sub-task-description\"},...]", after breaking this Jira ticket description:"${issueData.ticketDescription}" into the meaningful possible Jira sub tasks`;
 
   try {
-    const chatCompletion = await groq.chat.completions.create({
-      messages: [
-        {
-          role: "user",
-          content: userPrompt,
-        },
-      ],
-      model: "llama3-8b-8192",
+    // const chatCompletion = await groq.chat.completions.create({
+    //   messages: [
+    //     {
+    //       role: "user",
+    //       content: userPrompt,
+    //     },
+    //   ],
+    //   model: "llama3-8b-8192",
+    // });
+    // return chatCompletion;
+
+    
+    const url = 'https://groq-jira-connector-main-6fa4f2a.d2.zuplo.dev/getSubTasks';
+    const body = {
+      ticketDescription: `${encrypt(issueData.ticketDescription)}`
+    };
+  
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
     });
 
-    return chatCompletion;
+    response = decrypt(response)
+   
+    return response;
+
+  
   } catch (error) {
     console.error("Error fetching subtasks:", error);
     return []; // Return empty array if an error occurs

@@ -22,7 +22,7 @@ permissions:
   external:
     fetch:
       backend:
-        - https://api.groq.com
+        - https://groq-jira-connector-main-6fa4f2a.d2.zuplo.dev
 
 app:
   runtime:
