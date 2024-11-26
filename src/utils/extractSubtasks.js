@@ -1,4 +1,4 @@
-const extractingSubtasksFromOpenAiResponse = (messageContent) => {
+const extractSubtasksFromRes = (messageContent) => {
   const subtaskMatches = messageContent.match(/{\s*"summary":\s*"([^"]+)",\s*"description":\s*"([^"]+)"\s*}/g);
 
   if (subtaskMatches) {
@@ -12,6 +12,6 @@ const extractingSubtasksFromOpenAiResponse = (messageContent) => {
 };
   
   module.exports = {
-    extractingSubtasksFromOpenAiResponse,
+    extractSubtasksFromRes,
   };
   

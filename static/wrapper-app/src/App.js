@@ -4,47 +4,48 @@ import FlagError from "./FlagError";
 import { LoadingButton, ButtonGroup } from "@forge/react";
 
 function App() {
-  const [openAiError, setOpenAiError] = useState(null);
+  const [lengthError, setIssueLengthError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const createSubTasksHandler = async () => {
     setIsLoading(true);
+    setIssueLengthError(null);
 
-    const subTaskId = await invoke("getProjectMetaData");
-    const issueData = await invoke("getIssueDetailsById");
-    const label = await invoke('fetchLabels');
+    try {
+      const subTaskId = await invoke("getProjectMetaData");
+      const issueData = await invoke("getIssueDetailsById");
 
-    console.log("subtask id "+ JSON.stringify(subTaskId) + "\n issuedata " + JSON.stringify(issueData));
-    console.log("label "+ label);
-    
+      if (!issueData || !issueData.ticketDescription) {
+        throw new Error("Invalid issue data received.");
+      }
 
-    if (issueData.ticketDescription.length < 10) {
-      setOpenAiError(
-        "Please provide a meaningful description for your jira issue."
-      );
-      setIsLoading(false);
-    } else {
-      const apiToken = await invoke("getOpenaiToken");
-      console.log("apiTokensudo;vusovu" + apiToken);
-      
-      const openAiResponse = await invoke("getSubTasksByOpenAi", {
-        issueData,
-        apiToken,
-      });
-      console.log( "\n response" + openAiResponse);
-      
-      const res = openAiResponse.choices[0].message.content;
-      await invoke("createSubTasks", { res, subTaskId });
-      view.refresh();
+      if (issueData.ticketDescription.length < 10) {
+        setIssueLengthError(
+          "Please provide a meaningful description for your Jira issue."
+        );
+      } else {
+        const response = await invoke("getSubTasks", { issueData });
+
+        if (!response || !response.choices || !response.choices[0]?.message?.content) {
+          throw new Error("Invalid response from getSubTasks.");
+        }
+
+        const res = response.choices[0].message.content;
+        await invoke("createSubTasks", { res, subTaskId });
+        view.refresh();
+      }
+    } catch (error) {
+      console.error("Error creating sub-tasks:", error);
+      setIssueLengthError(error.message || "An unexpected error occurred.");
+    } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    
-    <div>      
+    <div>
       <div style={{ marginBottom: "10px" }}>
-        {openAiError && <FlagError errormsg={openAiError} />}
+        {lengthError && <FlagError errormsg={lengthError} />}
       </div>
 
       <ButtonGroup>
@@ -58,7 +59,6 @@ function App() {
       </ButtonGroup>
     </div>
   );
-  
 }
 
 export default App;
