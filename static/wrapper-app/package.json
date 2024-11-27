@@ -5,15 +5,21 @@
   "homepage": ".",
   "dependencies": {
     "@atlaskit/css-reset": "^6.6.2",
-    "@atlaskit/flag": "^15.8.8",
+    "@atlaskit/flag": "^15.8.10",
+    "@atlaskit/icon": "^22.26.0",
+    "@atlaskit/theme": "^14.0.1",
+    "@atlaskit/tokens": "^2.3.0",
     "@forge/bridge": "4.1.0",
-    "@forge/react": "^10.7.0",
+    "@forge/react": "^10.8.0",
     "groq-sdk": "^0.8.0",
+    "install": "^0.13.0",
+    "npm": "^10.9.1",
     "react": "^16",
     "react-dom": "^16"
   },
   "devDependencies": {
-    "react-scripts": "^5.0.1"
+    "react-scripts": "^5.0.1",
+    "typescript": "^4.9.5"
   },
   "scripts": {
     "start": "react-scripts start",
